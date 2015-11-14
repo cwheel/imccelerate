@@ -25,21 +25,24 @@ module.exports = function (app, exts, dir) {
 					if (cacheItem == null) {
 						console.log("[imccelerate][cache-miss]", new Date(), req.method, req.originalUrl);
 
-						fs.readFile(path, function (err,data) {
-						  if (err) {
-						    return console.log(err);
-						  }
+						res.sendFile(path);
 
-						  console.log("[imccelerate][cache-stored]", new Date(), req.originalUrl);
+						gm(path).size(function(err, size) {
+						  	if (err) {
+						  		console.log(err)
+						  	}
 
-						  imgCache.set(key, data);
-						  res.send(imgCache.get(key));
+						  	gm(path).resize(size.width, size.height).toBuffer('JPG',function(err, buffer) {
+							  if (err) return handle(err);
+							  console.log("[imccelerate][cache-stored]", new Date(), req.originalUrl);
+
+							  imgCache.set(key, buffer);
+							});
 						});
 					} else {
 						console.log("[imccelerate][cache-hit]", new Date(), req.method, req.originalUrl);
 						res.send(imgCache.get(key));
 					}
-					
 				} else {
 					res.status(404);
 					res.sendFile("File not found, cannot accelerate.");
@@ -49,7 +52,6 @@ module.exports = function (app, exts, dir) {
 			next();
 		}
 	}
-
 
 	function ext(str, sufs) {
 		for (var i = 0; i < sufs.length; i++) {
