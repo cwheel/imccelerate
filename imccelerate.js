@@ -1,5 +1,6 @@
 var fs = require('fs');
 var lru = require("lru-cache");
+var gm = require('gm');
 
 module.exports = function (app, exts, dir) {
 	var imgCache = lru();
@@ -16,10 +17,10 @@ module.exports = function (app, exts, dir) {
 		if (req.originalUrl.indexOf(".") > -1) {
 			if (ext(req.originalUrl, exts)) {
 				var path = dir + req.originalUrl;
-				console.log(req.session);
 
 				if (fileExists(path)) {
-					var cacheItem = imgCache.get(path);
+					var key = path + req.session.width + req.session.height + req.session.ratio;
+					var cacheItem = imgCache.get(key);
 					
 					if (cacheItem == null) {
 						console.log("[imccelerate][cache-miss]", new Date(), req.method, req.originalUrl);
@@ -29,15 +30,14 @@ module.exports = function (app, exts, dir) {
 						    return console.log(err);
 						  }
 
-						  imgCache.set(path, data);
 						  console.log("[imccelerate][cache-stored]", new Date(), req.originalUrl);
-						});
 
-						imgCache.set(path, null);
-						res.sendFile(path);
+						  imgCache.set(key, data);
+						  res.send(imgCache.get(key));
+						});
 					} else {
 						console.log("[imccelerate][cache-hit]", new Date(), req.method, req.originalUrl);
-						res.send(imgCache.get(path));
+						res.send(imgCache.get(key));
 					}
 					
 				} else {
