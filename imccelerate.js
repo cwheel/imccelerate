@@ -15,7 +15,7 @@ module.exports = function (app, exts, dir) {
 
 	return function(req, res, next) {
 		if (req.originalUrl.indexOf(".") > -1) {
-			if (ext(req.originalUrl, exts)) {
+			if (validExt(req.originalUrl, exts)) {
 				var path = dir + req.originalUrl;
 
 				if (fileExists(path)) {
@@ -27,13 +27,45 @@ module.exports = function (app, exts, dir) {
 
 						res.sendFile(path);
 
-						gm(path).size(function(err, size) {
-						  	if (err) {
-						  		console.log(err)
+						gm(path).size(function(err, image) {
+						  	if (err) return handle(err);
+
+						  	var scale = 1;
+						  	var quality = 100;
+						  	var newHeight;
+						  	var newWidth;
+
+						  	if (req.session.width > req.session.height) {
+						  		newWidth = ((req.session.width*image.width)/image.height)*scale;
+						  		newHeight = (req.session.height)*scale;
+
+						  		quality = (image.width*100)/newWidth;
+						  	} else {
+						  		newHeight = ((req.session.height*image.height)/image.width)*scale;
+						  		newWidth = (req.session.width)*scale;
+
+						  		quality = (image.height*100)/newHeight;
 						  	}
 
-						  	gm(path).resize(size.width, size.height).toBuffer('JPG',function(err, buffer) {
+						  	//Manual quality overrides for high DPI screens, ensure that images look sharp
+						  	//It's much harder to tell on a low quality screen so scale it pretty low
+
+						  	//Retina
+						  	if (req.session.ratio == 2) {
+						  		quality = 95;
+						  	}
+						  	
+						  	//Above Retina (5k iMacs and ....)
+						  	if (req.session.ratio > 2) {
+						  		quality = 98;
+						  	}
+
+						  	newWidth = newWidth * req.session.ratio;
+						  	newHeight = newHeight * req.session.ratio;
+
+						  	gm(path).quality(quality).resize(newWidth, newHeight).toBuffer(ext(path, exts),function(err, buffer) {
 							  if (err) return handle(err);
+
 							  console.log("[imccelerate][cache-stored]", new Date(), req.originalUrl);
 
 							  imgCache.set(key, buffer);
@@ -53,10 +85,20 @@ module.exports = function (app, exts, dir) {
 		}
 	}
 
-	function ext(str, sufs) {
+	function validExt(str, sufs) {
 		for (var i = 0; i < sufs.length; i++) {
 			if (str.indexOf("." + sufs[i], str.length - "." + sufs[i].length) !== -1) {
 				return true;
+			}
+		}
+
+    	return false;
+	}
+
+	function ext(str, sufs) {
+		for (var i = 0; i < sufs.length; i++) {
+			if (str.indexOf("." + sufs[i], str.length - "." + sufs[i].length) !== -1) {
+				return str.toUpperCase();
 			}
 		}
 
