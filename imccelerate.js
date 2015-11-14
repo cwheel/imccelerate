@@ -3,7 +3,10 @@ var lru = require("lru-cache");
 var gm = require('gm');
 
 module.exports = function (app, exts, dir) {
-	var imgCache = lru();
+	var imgCache = lru(10000);
+
+	var stats = {'readMb' : 0, 'sentMb' : 0, 'savedMb' : 0};
+	var readSizes = {};
 
 	app.post('/imccelerate', function(req, res) {
 		req.session.width = req.body.width;
@@ -11,6 +14,10 @@ module.exports = function (app, exts, dir) {
 		req.session.ratio = req.body.ratio;
 
 		res.send("session_stored");
+	});
+
+	app.get('/imccelerate_stats', function(req, res) {
+		res.send(stats);
 	});
 
 	return function(req, res, next) {
@@ -25,8 +32,6 @@ module.exports = function (app, exts, dir) {
 					if (cacheItem == null) {
 						console.log("[imccelerate][cache-miss]", new Date(), req.method, req.originalUrl);
 
-						res.sendFile(path);
-
 						gm(path).size(function(err, image) {
 						  	if (err) return handle(err);
 
@@ -34,6 +39,8 @@ module.exports = function (app, exts, dir) {
 						  	var quality = 100;
 						  	var newHeight;
 						  	var newWidth;
+
+						  	var sizeBytes = fs.statSync(path).size;
 
 						  	if (req.session.width > req.session.height) {
 						  		newWidth = ((req.session.width*image.width)/image.height)*scale;
@@ -54,7 +61,7 @@ module.exports = function (app, exts, dir) {
 						  	if (req.session.ratio == 2) {
 						  		quality = 95;
 						  	}
-						  	
+
 						  	//Above Retina (5k iMacs and ....)
 						  	if (req.session.ratio > 2) {
 						  		quality = 98;
@@ -63,17 +70,33 @@ module.exports = function (app, exts, dir) {
 						  	newWidth = newWidth * req.session.ratio;
 						  	newHeight = newHeight * req.session.ratio;
 
+						  	//TODO: Make this more adaptable
+						  	if (req.headers['user-agent'].toLowerCase().indexOf("mobile") > -1) {
+						  		quality = quality - 10;
+						  	}
+
 						  	gm(path).quality(quality).resize(newWidth, newHeight).toBuffer(ext(path, exts),function(err, buffer) {
 							  if (err) return handle(err);
 
 							  console.log("[imccelerate][cache-stored]", new Date(), req.originalUrl);
 
+							  readSizes[path] = sizeBytes/1024/1024;
+							  stats.readMb += sizeBytes/1024/1024;
+							  stats.sentMb += buffer.length/1024/1024;
+
 							  imgCache.set(key, buffer);
 							});
 						});
+
+						res.sendFile(path);
 					} else {
 						console.log("[imccelerate][cache-hit]", new Date(), req.method, req.originalUrl);
-						res.send(imgCache.get(key));
+
+						var item = imgCache.get(key);
+						stats.savedMb += readSizes[path] - (item.length/1024/1024);
+						stats.sentMb += item.length/1024/1024;
+
+						res.send(item);
 					}
 				} else {
 					res.status(404);
