@@ -1,13 +1,22 @@
 var fs = require('fs');
 var lru = require("lru-cache");
 
-module.exports = function (exts, dir) {
+module.exports = function (app, exts, dir) {
 	var imgCache = lru();
+
+	app.post('/imccelerate', function(req, res) {
+		req.session.width = req.body.width;
+		req.session.height = req.body.height;
+		req.session.ratio = req.body.ratio;
+
+		res.send("session_stored");
+	});
 
 	return function(req, res, next) {
 		if (req.originalUrl.indexOf(".") > -1) {
 			if (ext(req.originalUrl, exts)) {
 				var path = dir + req.originalUrl;
+				console.log(req.session);
 
 				if (fileExists(path)) {
 					var cacheItem = imgCache.get(path);
@@ -40,6 +49,7 @@ module.exports = function (exts, dir) {
 			next();
 		}
 	}
+
 
 	function ext(str, sufs) {
 		for (var i = 0; i < sufs.length; i++) {

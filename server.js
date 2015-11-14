@@ -12,12 +12,12 @@ app.use(bodyParser.urlencoded({
 
 app.use(cookieParser());
 app.use(session({ 
-	secret: 'imccelerate', 
+	secret: 'imccelerate',
 	saveUninitialized: true, 
 	resave: true
 }));
 
-app.use(imccelerate(['png', 'jpg', 'jpeg'], __dirname + '/public'));
+app.use(imccelerate(app, ['png', 'jpg', 'jpeg'], __dirname + '/public'));
 
 app.use(express.static(__dirname + '/public'));
 app.listen(3000);

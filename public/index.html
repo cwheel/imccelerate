@@ -1,4 +1,9 @@
 <html>
+	<script type="text/javascript" src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
+	<script type="text/javascript">
+		$.ajax({type: "POST", url: "/imccelerate", data: {width: screen.width, height: screen.height, ratio: window.devicePixelRatio}});
+	</script>
+
 	<body>
 		<img src="4ktest.jpg"></img>
 	</body>
