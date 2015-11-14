@@ -1,16 +1,39 @@
 var fs = require('fs');
+var lru = require("lru-cache");
 
 module.exports = function (exts, dir) {
+	var imgCache = lru();
+
 	return function(req, res, next) {
 		if (req.originalUrl.indexOf(".") > -1) {
 			if (ext(req.originalUrl, exts)) {
 				var path = dir + req.originalUrl;
 
 				if (fileExists(path)) {
-					res.sendFile(path);
+					var cacheItem = imgCache.get(path);
+					
+					if (cacheItem == null) {
+						console.log("[imccelerate][cache-miss]", new Date(), req.method, req.originalUrl);
+
+						fs.readFile(path, function (err,data) {
+						  if (err) {
+						    return console.log(err);
+						  }
+
+						  imgCache.set(path, data);
+						  console.log("[imccelerate][cache-stored]", new Date(), req.originalUrl);
+						});
+
+						imgCache.set(path, null);
+						res.sendFile(path);
+					} else {
+						console.log("[imccelerate][cache-hit]", new Date(), req.method, req.originalUrl);
+						res.send(imgCache.get(path));
+					}
+					
 				} else {
 					res.status(404);
-					res.send("File not found, cannot accelerate.");
+					res.sendFile("File not found, cannot accelerate.");
 				}
 			}
 		} else {
