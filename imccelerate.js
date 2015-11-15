@@ -89,7 +89,57 @@ module.exports = function (app, exts, dir, cndCostPerGig, cdnMin, life) {
 					var key = path + req.session.width + req.session.height + req.session.ratio + query;
 					var cacheItem = imgCache.get(key);
 
-					if (cacheItem == null) {
+					if(query == "cache"){
+
+						if (cacheItem == null){
+							gm(path).size(function(err, image) {
+							var newHeight;
+						  	var newWidth;
+
+						  	var sizeBytes = fs.statSync(path).size;
+
+						  	if (req.session.width > req.session.height) {
+						  		newWidth = ((req.session.width*image.width)/image.height)*scale* req.session.ratio;
+						  		newHeight = (req.session.height)*scale*req.session.ratio;
+						  	} else {
+						  		newHeight = ((req.session.height*image.height)/image.width)*scale* req.session.ratio;
+						  		newWidth = (req.session.width)*scale*req.session.ratio;
+						  	}
+							gm(path).quality(95).resize(newWidth, newHeight).toBuffer(ext(path, exts),function(err, buffer) {
+								  if (err) return handle(err);
+
+								  imgCache.set(key, {'buffer' : buffer, 'cdnUrl' : '', 'bandwidth' : 0, 'height' : req.session.height, 'width' : req.session.width, 'path': path});
+
+
+									var base64key = new Buffer(key).toString('base64');
+									fs.writeFile("tmp/" + base64key + "." + ext(path,exts), imgCache.get(key).buffer, function(err) {
+									    if (err) {
+									        return console.log(err);
+									    }
+
+									    blobSvc.createBlockBlobFromLocalFile(config.azure.containerName, base64key, "tmp/" + base64key + "." + ext(path,exts), function(error, result, response){
+									      if (!error){
+									      	cacheItem = imgCache.get(key);
+									        imgCache.del(key);
+									        cacheItem.cdnUrl = base64key;
+
+									        imgCache.set(key, cacheItem);
+
+									        cdnCost += (cacheItem.buffer.length/1024/1024/1024)*cndCostPerGig;
+
+									        console.log("[imccelerate][cdn-stored-forecd]", key);
+									      }
+									    });
+							});
+							});
+							});
+							res.sendFile(path);
+						} else {
+							cdnCost += (cacheItem.buffer.length/1024/1024/1024)*cndCostPerGig;
+
+							res.redirect(cdnUrlBase + cacheItem.cdnUrl);
+						}
+					}else if (cacheItem == null) {
 						console.log("[imccelerate][cache-miss]", new Date(), req.method, req.originalUrl);
 						similarKey = null;
 						stopLoop = false;
