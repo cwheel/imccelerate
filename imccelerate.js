@@ -17,7 +17,7 @@ blobSvc.createContainerIfNotExists('images',{publicAccessLevel : 'container'} , 
   }
 });
 
-module.exports = function (app, exts, dir, cndCostPerGig) {
+module.exports = function (app, exts, dir, cndCostPerGig, cdnMin) {
 	//1GB LRU
 	var imgCache = lru({length: function (n) { n.length }, max: 1024*1024*1024});
 
@@ -139,7 +139,7 @@ module.exports = function (app, exts, dir, cndCostPerGig) {
 						cdnCost += (cacheItem.buffer.length/1024/1024/1024)*cndCostPerGig;
 
 						res.redirect(cdnUrlBase + cacheItem.cdnUrl);
-					} else if (cacheItem.bandwidth > 10) {
+					} else if (cacheItem.bandwidth > cdnMin) {
 						var base64key = new Buffer(key).toString('base64');
 						fs.writeFile("tmp/" + base64key + "." + ext(path,exts), cacheItem.buffer, function(err) {
 						    if (err) {

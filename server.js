@@ -17,7 +17,7 @@ app.use(session({
 	resave: true
 }));
 
-app.use(imccelerate(app, ['png', 'jpg', 'jpeg'], __dirname + '/public', 0.087));
+app.use(imccelerate(app, ['png', 'jpg', 'jpeg'], __dirname + '/public', 0.087, 1000));
 
 app.use(express.static(__dirname + '/public'));
 app.listen(3000);
