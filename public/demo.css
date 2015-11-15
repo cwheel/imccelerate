@@ -1,3 +1,8 @@
+body {
+	margin: 0;
+	background: #333;
+}
+
 #header {
 	background: url("images/header.jpg"); 
 	background-size: cover; 
@@ -5,4 +10,57 @@
 	height: 50%;
 	margin: 0;
 	padding: 0;
+}
+
+#welcome-message {
+	text-align: center;
+    top: 40%;
+    position: relative;
+    font-size: 30px;
+    color: white;
+    font-family: 'Oxygen', sans-serif;
+    font-weight: 300;
+}
+
+#welcome-sub {
+    font-size: 13px;
+}
+
+#product {
+	font-weight: 700;
+}
+
+#site-message {
+	text-align: center;
+	padding-top: 30px;
+	padding-bottom: 30px;
+    font-size: 15px;
+    color: white;
+    font-family: 'Oxygen', sans-serif;
+    font-weight: 300;
+}
+
+.img {
+	width: 100%;
+	height: 300px;
+	background-size: cover;
+	float: left;
+}
+
+a {
+	color: #92d5fc;
+	text-decoration: none;
+	transition: 0.5s;
+}
+
+a:visited {
+	color: #92d5fc;
+}
+
+a:active {
+	color: #b8cfdd;
+}
+
+a:hover {
+	color: #b8cfdd;
 }
