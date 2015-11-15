@@ -93,7 +93,7 @@ module.exports = function (app, exts, dir, cndCostPerGig, cdnMin) {
 						  	else if (screenArea < 1060000) quality = 80;
 						  	else if (screenArea < 2400000) quality = 90;
 						  	else if (screenArea < 3500000) quality = 95;
-						  	console.log(quality);
+
 						  	var newHeight;
 						  	var newWidth;
 
@@ -188,6 +188,8 @@ module.exports = function (app, exts, dir, cndCostPerGig, cdnMin) {
 					res.send("File not found, cannot accelerate.");
 
 				}
+			} else {
+				next();
 			}
 		} else {
 			next();
