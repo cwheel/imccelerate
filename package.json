@@ -1,15 +1,15 @@
- {
+{
   "name": "imccelerate",
   "main": "server.js",
-
   "dependencies": {
+    "azure-storage": "latest",
     "body-parser": "latest",
+    "compression": "latest",
     "cookie-parser": "latest",
     "express": "latest",
     "express-session": "latest",
-    "lru-cache": "latest",
     "gm": "latest",
-    "azure-storage": "latest",
-    "compression": "latest"
+    "lru-cache": "latest",
+    "project-oxford": "^0.2.2"
   }
 }

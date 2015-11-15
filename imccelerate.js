@@ -5,6 +5,9 @@ var azure = require('azure-storage');
 var config = JSON.parse(fs.readFileSync('config.json', 'utf8'));
 var compression = require('compression');
 
+var oxford = require('project-oxford'),
+    client = new oxford.Client(config.azure["oxford"]);
+
 var accessKey = config.azure["accessKey"];
 var storageAccount = 'imccelerate';
 var blobSvc = azure.createBlobService(storageAccount, accessKey);
@@ -147,17 +150,46 @@ module.exports = function (app, exts, dir, cndCostPerGig, cdnMin) {
 						  	if (req.headers['user-agent'].toLowerCase().indexOf("mobile") > -1) {
 						  		quality = quality - 10;
 						  	}
+
+						  	if (query.indexOf("thumb") > -1){
+						  		quality = 95;
+						  		console.log(newHeight)
+						  	}
+
 						  	gm(path).quality(quality).resize(newWidth, newHeight).toBuffer(ext(path, exts),function(err, buffer) {
 							  if (err) return handle(err);
 
 							  console.log("[imccelerate][cache-stored]", new Date(), req.originalUrl);
 
-							  readSizes[path] = sizeBytes/1024/1024;
-							  stats.readMb += sizeBytes/1024/1024;
-							  stats.sentMb += buffer.length/1024/1024;
+							  	if(query.indexOf("thumb") > -1){
+							  		args = query.replace("thumb","").split(",");
+							  		client.vision.thumbnail({
+							  		    path: path,
+							  		    height: args[0],
+							  		    width: args[1],
+							  		    smartCropping: true,
+							  		    pipe: fs.createWriteStream('./tmp/' + base64key)
+							  		}).then(function (response) {
+							  		  	gm("./tmp/" + base64key).quality(quality).resize(newWidth, newHeight).toBuffer(ext(path, exts),function(err, buffer) {
+							  			  if (err) return handle(err);
 
-							  imgCache.set(key, {'buffer' : buffer, 'cdnUrl' : '', 'bandwidth' : 0, 'height' : req.session.height, 'width' : req.session.width, 'path': path});
-							});
+							  			  console.log("[imccelerate][cache-stored-thumb]", new Date(), req.originalUrl);
+							  			  
+							  			  readSizes[path] = sizeBytes/1024/1024;
+							  			  stats.readMb += sizeBytes/1024/1024;
+							  			  stats.sentMb += buffer.length/1024/1024;
+
+							  			  imgCache.set(key, {'buffer' : buffer, 'cdnUrl' : '', 'bandwidth' : 0, 'height' : req.session.height, 'width' : req.session.width, 'path': path});
+							  			});
+							          });
+							  	}else{
+								  readSizes[path] = sizeBytes/1024/1024;
+								  stats.readMb += sizeBytes/1024/1024;
+								  stats.sentMb += buffer.length/1024/1024;
+
+								  imgCache.set(key, {'buffer' : buffer, 'cdnUrl' : '', 'bandwidth' : 0, 'height' : req.session.height, 'width' : req.session.width, 'path': path});
+								}
+							});	
 						});
 						if (!stopLoop){
 							res.sendFile(path);
