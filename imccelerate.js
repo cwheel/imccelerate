@@ -56,6 +56,7 @@ module.exports = function (app, exts, dir, cndCostPerGig, cdnMin) {
 				var url = req.originalUrl;
 				var query = '';
 				var scale = 1;
+				var blur = 0;
 
 				if (req.originalUrl.indexOf('-') > -1) {
 					query = req.originalUrl.split('-')[1];
@@ -72,6 +73,9 @@ module.exports = function (app, exts, dir, cndCostPerGig, cdnMin) {
 					scale = 0.8;
 				} else if (query == 'xl') {
 					scale = 1;
+				} else if (query.indexOf('blur') > -1) {
+					blur = parseInt(query.replace("blur",""));
+					console.log(blur);
 				} else if (query == 'ignore') {
 					next();
 				} 
@@ -147,7 +151,7 @@ module.exports = function (app, exts, dir, cndCostPerGig, cdnMin) {
 						  	if (req.headers['user-agent'].toLowerCase().indexOf("mobile") > -1) {
 						  		quality = quality - 10;
 						  	}
-						  	gm(path).quality(quality).resize(newWidth, newHeight).toBuffer(ext(path, exts),function(err, buffer) {
+						  	gm(path).blur(blur).quality(quality).resize(newWidth, newHeight).toBuffer(ext(path, exts),function(err, buffer) {
 							  if (err) return handle(err);
 
 							  console.log("[imccelerate][cache-stored]", new Date(), req.originalUrl);
