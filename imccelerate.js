@@ -67,6 +67,8 @@ module.exports = function (app, exts, dir, cndCostPerGig) {
 					scale = 0.8;
 				} else if (query == 'xl') {
 					scale = 1;
+				} else if (query == 'ignore') {
+					next();
 				} 
 
 				var path = dir + url;
