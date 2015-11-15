@@ -47,10 +47,31 @@ module.exports = function (app, exts, dir) {
 	return function(req, res, next) {
 		if (req.originalUrl.indexOf(".") > -1) {
 			if (validExt(req.originalUrl, exts)) {
-				var path = dir + req.originalUrl;
+				var url = req.originalUrl;
+				var query = '';
+				var scale = 1;
+
+				if (req.originalUrl.indexOf('-') > -1) {
+					query = req.originalUrl.split('-')[1];
+					url = req.originalUrl.replace('-' + query, "");
+				}
+
+				if (query == 'xs') {
+					scale = 0.1;
+				} else if (query == 'sm') {
+					scale = 0.25;
+				} else if (query == 'md') {
+					scale = 0.6;
+				} else if (query == 'lg') {
+					scale = 0.8;
+				} else if (query == 'xl') {
+					scale = 1;
+				} 
+
+				var path = dir + url;
 
 				if (fileExists(path)) {
-					var key = path + req.session.width + req.session.height + req.session.ratio;
+					var key = path + req.session.width + req.session.height + req.session.ratio + query;
 					var cacheItem = imgCache.get(key);
 					
 					if (cacheItem == null) {
@@ -58,8 +79,7 @@ module.exports = function (app, exts, dir) {
 
 						gm(path).size(function(err, image) {
 						  	if (err) return handle(err);
-						  	console.log(req.session.width + " " + req.session.height + " " + req.session.ratio);
-						  	var scale = 1;
+						  	
 						  	var quality = 100;
 						  	var newHeight;
 						  	var newWidth;
@@ -150,7 +170,7 @@ module.exports = function (app, exts, dir) {
 					
 				} else {
 					res.status(404);
-					res.sendFile("File not found, cannot accelerate.");
+					res.send("File not found, cannot accelerate.");
 
 				}
 			}
