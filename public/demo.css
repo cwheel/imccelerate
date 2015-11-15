@@ -46,7 +46,7 @@ body {
 	background-size: cover;
 	float: left;
 	border: solid 2px white;
-	transition: all 0.3s cubic-bezier(.15,.74,.86,.47);
+	transition: all .5s cubic-bezier(0, 1.1, 0.5, 1.1);
 }
 
 .img:hover {

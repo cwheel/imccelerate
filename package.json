@@ -9,6 +9,7 @@
     "express-session": "latest",
     "lru-cache": "latest",
     "gm": "latest",
-    "azure-storage": "latest"
+    "azure-storage": "latest",
+    "compression": "latest"
   }
 }
