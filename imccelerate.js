@@ -17,7 +17,7 @@ blobSvc.createContainerIfNotExists('images',{publicAccessLevel : 'container'} , 
   }
 });
 
-module.exports = function (app, exts, dir, cndCostPerGig) {
+module.exports = function (app, exts, dir, cndCostPerGig, cdnMin) {
 	//1GB LRU
 	var imgCache = lru({length: function (n) { n.length }, max: 1024*1024*1024});
 
@@ -108,7 +108,7 @@ module.exports = function (app, exts, dir, cndCostPerGig) {
 						  	else if (screenArea < 1060000) quality = 80;
 						  	else if (screenArea < 2400000) quality = 90;
 						  	else if (screenArea < 3500000) quality = 95;
-						  	console.log(quality);
+
 						  	var newHeight;
 						  	var newWidth;
 
@@ -164,7 +164,7 @@ module.exports = function (app, exts, dir, cndCostPerGig) {
 						cdnCost += (cacheItem.buffer.length/1024/1024/1024)*cndCostPerGig;
 
 						res.redirect(cdnUrlBase + cacheItem.cdnUrl);
-					} else if (cacheItem.bandwidth > 10) {
+					} else if (cacheItem.bandwidth > cdnMin) {
 						var base64key = new Buffer(key).toString('base64');
 						fs.writeFile("tmp/" + base64key + "." + ext(path,exts), cacheItem.buffer, function(err) {
 						    if (err) {
@@ -205,6 +205,8 @@ module.exports = function (app, exts, dir, cndCostPerGig) {
 					res.send("File not found, cannot accelerate.");
 
 				}
+			} else {
+				next();
 			}
 		} else {
 			next();
