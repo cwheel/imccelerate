@@ -28,6 +28,8 @@ module.exports = function (app, exts, dir, cndCostPerGig, cdnMin) {
 	app.post('/imccelerate_enable', function(req, res) {
 		req.session.width = req.body.width;
 		req.session.height = req.body.height;
+		req.session.heightScreen = req.body.heightScreen;
+		req.session.widthScreen = req.body.widthScreen;
 		req.session.ratio = req.body.ratio;
 
 		res.send("session_stored");
@@ -84,6 +86,14 @@ module.exports = function (app, exts, dir, cndCostPerGig, cdnMin) {
 						  	if (err) return handle(err);
 						  	
 						  	var quality = 100;
+						  	// Determine quality based roughly on the quality of their monitor
+						  	var screenArea = req.session.heightScreen * req.session.widthScreen;
+						  	if (screenArea < 480000) quality = 55;
+						  	else if (screenArea < 786431) quality = 65;
+						  	else if (screenArea < 1060000) quality = 80;
+						  	else if (screenArea < 2400000) quality = 90;
+						  	else if (screenArea < 3500000) quality = 95;
+						  	console.log(quality);
 						  	var newHeight;
 						  	var newWidth;
 
@@ -93,19 +103,17 @@ module.exports = function (app, exts, dir, cndCostPerGig, cdnMin) {
 						  		newWidth = ((req.session.width*image.width)/image.height)*scale* req.session.ratio;
 						  		newHeight = (req.session.height)*scale*req.session.ratio;
 
-						  		quality = 80;
 						  	} else {
 						  		newHeight = ((req.session.height*image.height)/image.width)*scale* req.session.ratio;
 						  		newWidth = (req.session.width)*scale*req.session.ratio;
 
-						  		quality = 80;
 						  	}
 
 						  	//Manual quality overrides for high DPI screens, ensure that images look sharp
 						  	//It's much harder to tell on a low quality screen so scale it pretty low
 
 						  	//Retina
-						  	if (req.session.ratio == 2) {
+						  	if (req.session.ratio > 1 && req.session.ratio < 2 ) {
 						  		quality = 95;
 						  	}
 
