@@ -8,6 +8,7 @@ var config = JSON.parse(fs.readFileSync('config.json', 'utf8'));
 var accessKey = config.azure["accessKey"];
 var storageAccount = 'imccelerate';
 var blobSvc = azure.createBlobService(storageAccount, accessKey);
+var cdnUrlBase = "http://az834420.vo.msecnd.net/images/"
 
 blobSvc.createContainerIfNotExists('images',{publicAccessLevel : 'container'} , function(error, result, response){
   if(!error){
@@ -57,7 +58,7 @@ module.exports = function (app, exts, dir) {
 
 						gm(path).size(function(err, image) {
 						  	if (err) return handle(err);
-
+						  	console.log(req.session.width + " " + req.session.height + " " + req.session.ratio);
 						  	var scale = 1;
 						  	var quality = 100;
 						  	var newHeight;
@@ -66,13 +67,13 @@ module.exports = function (app, exts, dir) {
 						  	var sizeBytes = fs.statSync(path).size;
 
 						  	if (req.session.width > req.session.height) {
-						  		newWidth = ((req.session.width*image.width)/image.height)*scale;
-						  		newHeight = (req.session.height)*scale;
+						  		newWidth = ((req.session.width*image.width)/image.height)*scale* req.session.ratio;
+						  		newHeight = (req.session.height)*scale*req.session.ratio;
 
 						  		quality = 80;
 						  	} else {
-						  		newHeight = ((req.session.height*image.height)/image.width)*scale;
-						  		newWidth = (req.session.width)*scale;
+						  		newHeight = ((req.session.height*image.height)/image.width)*scale* req.session.ratio;
+						  		newWidth = (req.session.width)*scale*req.session.ratio;
 
 						  		quality = 80;
 						  	}
@@ -111,16 +112,10 @@ module.exports = function (app, exts, dir) {
 						});
 
 						res.sendFile(path);
-					} else {
-						console.log("[imccelerate][cache-hit]", new Date(), req.method, req.originalUrl);
-						
-						imgCache.del(key);
-						cacheItem.bandwidth += stats.sentMb;
-
-						imgCache.set(key, cacheItem);
-
-						stats.savedMb += readSizes[path] - (cacheItem.buffer.length/1024/1024);
-						stats.sentMb += cacheItem.buffer.length/1024/1024;
+					} else if (cacheItem.cdnUrl != '') {
+						console.log(cacheItem.cdnUrl)
+						res.redirect(cdnUrlBase + cacheItem.cdnUrl);
+					} else if (cacheItem.bandwidth > 10){
 
 						var base64key = new Buffer(key).toString('base64');
 						fs.writeFile(base64key + "." + ext(path,exts), cacheItem.buffer, function(err) {
@@ -130,11 +125,25 @@ module.exports = function (app, exts, dir) {
 						    blobSvc.createBlockBlobFromLocalFile('images', base64key, base64key + "." + ext(path,exts), function(error, result, response){
 						      if(!error){
 						        // file uploaded
-						        console.log("Success Cached File");
+						        cacheItem.cdnUrl = base64key;
+						        console.log("Succesfully Cached File: " + key);
 						      }
 						    });
-
 						});
+						res.send(cacheItem.buffer)
+
+					} else {
+						console.log("[imccelerate][cache-hit]", new Date(), req.method, req.originalUrl);
+						
+						imgCache.del(key);
+						cacheItem.bandwidth += stats.sentMb;
+						console.log(cacheItem.bandwidth);
+						imgCache.set(key, cacheItem);
+
+						stats.savedMb += readSizes[path] - (cacheItem.buffer.length/1024/1024);
+						stats.sentMb += cacheItem.buffer.length/1024/1024;
+
+						
 
 						res.send(cacheItem.buffer);
 					}
