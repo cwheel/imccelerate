@@ -56,6 +56,10 @@ module.exports = function (app, exts, dir, cndCostPerGig, cdnMin, life) {
 		res.sendFile(__dirname + "/lib/dashboard.html");
 	});
 
+	app.get('/slow', function(req, res) {
+		res.sendFile(__dirname + "/public/ns.html");
+	});
+
 	return function(req, res, next) {
 		if (req.originalUrl.indexOf(".") > -1) {
 			if (validExt(req.originalUrl, exts)) {
@@ -68,7 +72,7 @@ module.exports = function (app, exts, dir, cndCostPerGig, cdnMin, life) {
 					query = req.originalUrl.split('-')[1];
 					url = req.originalUrl.replace('-' + query, "");
 				}
-				console.log(query);
+				
 				var path = dir + url;
 				if (query == 'xs') {
 					scale = 0.1;
@@ -130,7 +134,7 @@ module.exports = function (app, exts, dir, cndCostPerGig, cdnMin, life) {
 
 									        cdnCost += (cacheItem.buffer.length/1024/1024/1024)*cndCostPerGig;
 
-									        console.log("[imccelerate][cdn-stored-forecd]", key);
+									        console.log("[imccelerate][cdn-stored-forced]", new Date(), key);
 									      }
 									    });
 							});
