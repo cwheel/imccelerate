@@ -153,7 +153,7 @@ module.exports = function (app, exts, dir, cndCostPerGig, cdnMin, life) {
 						imgCache.forEach(function (val, curKey, cache) {
 							if (!stopLoop){
 								if ((Math.abs(req.session.width - val.width) < 200 || Math.abs(req.session.height  - val.height) < 200) && path == val.path){
-									console.log("[imccelerate][found-similar-match]")
+									console.log("[imccelerate][found-similar-match]", new Date(), key);
 									similarKey = curKey;
 									stopLoop = true;
 								}		
@@ -212,7 +212,6 @@ module.exports = function (app, exts, dir, cndCostPerGig, cdnMin, life) {
 
 						  	if (query.indexOf("profile") > -1){
 						  		quality = 95;
-						  		console.log(newHeight)
 						  	}
 
 						  	gm(path).quality(quality).resize(newWidth, newHeight).toBuffer(ext(path, exts),function(err, buffer) {
@@ -254,7 +253,7 @@ module.exports = function (app, exts, dir, cndCostPerGig, cdnMin, life) {
 							res.sendFile(path);
 						}
 					} else if (cacheItem.cdnUrl != '') {
-						console.log("[imccelerate][cdn-hit]", new Date(), req.method, req.originalUrl);
+						console.log("[imccelerate][cdn-hit]", new Date(), req.method, req.url);
 						cdnCost += (cacheItem.buffer.length/1024/1024/1024)*cndCostPerGig;
 
 						res.redirect(cdnUrlBase + cacheItem.cdnUrl);
