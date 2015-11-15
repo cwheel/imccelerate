@@ -18,9 +18,9 @@ blobSvc.createContainerIfNotExists('images',{publicAccessLevel : 'container'} , 
   }
 });
 
-module.exports = function (app, exts, dir, cndCostPerGig, cdnMin) {
+module.exports = function (app, exts, dir, cndCostPerGig, cdnMin, life) {
 	//1GB LRU
-	var imgCache = lru({length: function (n) { n.length }, max: 1024*1024*1024});
+	var imgCache = lru({length: function (n) { n.length }, max: 1024*1024*1024, maxAge: life});
 
 	var stats = {'readMb' : 0, 'sentMb' : 0, 'savedMb' : 0};
 	var readSizes = {};
