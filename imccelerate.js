@@ -2,7 +2,6 @@ var fs = require('fs');
 var lru = require("lru-cache");
 var gm = require('gm');
 var azure = require('azure-storage');
-var fs = require('fs');
 var config = JSON.parse(fs.readFileSync('config.json', 'utf8'));
 
 var accessKey = config.azure["accessKey"];
@@ -11,9 +10,9 @@ var blobSvc = azure.createBlobService(storageAccount, accessKey);
 var cdnUrlBase = "http://az834420.vo.msecnd.net/images/"
 
 blobSvc.createContainerIfNotExists('images',{publicAccessLevel : 'container'} , function(error, result, response){
-  if(!error){
+  if (!error) {
     console.log("Image Containter Created");
-  }else{
+  } else {
     console.log(error);
   }
 });
@@ -24,6 +23,7 @@ module.exports = function (app, exts, dir, cndCostPerGig) {
 
 	var stats = {'readMb' : 0, 'sentMb' : 0, 'savedMb' : 0};
 	var readSizes = {};
+	var cdnCost = 0;
 
 	app.post('/imccelerate_enable', function(req, res) {
 		req.session.width = req.body.width;
@@ -36,6 +36,7 @@ module.exports = function (app, exts, dir, cndCostPerGig) {
 	app.get('/imccelerate_stats', function(req, res) {
 		var send = stats;
 		send.reads = Object.keys(readSizes).length;
+		send.cdnCost = cdnCost;
 
 		res.send(send);
 	});
@@ -133,18 +134,23 @@ module.exports = function (app, exts, dir, cndCostPerGig) {
 						res.sendFile(path);
 					} else if (cacheItem.cdnUrl != '') {
 						res.redirect(cdnUrlBase + cacheItem.cdnUrl);
-					} else if (cacheItem.bandwidth > 10){
-
+					} else if (cacheItem.bandwidth > 10) {
 						var base64key = new Buffer(key).toString('base64');
 						fs.writeFile(base64key + "." + ext(path,exts), cacheItem.buffer, function(err) {
-						    if(err) {
+						    if (err) {
 						        return console.log(err);
 						    }
+
 						    blobSvc.createBlockBlobFromLocalFile('images', base64key, base64key + "." + ext(path,exts), function(error, result, response){
-						      if(!error){
-						        // file uploaded
+						      if (!error){
+						        imgCache.del(key);
 						        cacheItem.cdnUrl = base64key;
-						        console.log("Succesfully Cached File: " + key);
+
+						        imgCache.set(key, cacheItem);
+
+						        cdnCost += (cacheItem.buffer.length/1024/1024/1024)*cndCostPerGig;
+
+						        console.log("[imccelerate][cdn-stored]", key);
 						      }
 						    });
 						});

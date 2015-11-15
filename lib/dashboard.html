@@ -16,6 +16,7 @@
 		}
 
 		$.get("/imccelerate_stats", function (resp) {
+			console.log(resp);
 			$("#mbsent").text(formatSize(resp.sentMb));
 			$("#mbread").text(formatSize(resp.readMb));
 			$("#mbsaved").text(formatSize(resp.savedMb));
