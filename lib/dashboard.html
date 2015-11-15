@@ -20,6 +20,7 @@
 			$("#mbread").text(formatSize(resp.readMb));
 			$("#mbsaved").text(formatSize(resp.savedMb));
 			$("#reads").text(resp.reads);
+			$("#host").text(window.location.hostname);
 			$("#mbused").text(formatSize(resp.sentMb));
 			$("#uless").text(Math.round((resp.savedMb / (resp.sentMb + resp.savedMb))*100)  + "% less bandwidth");
 
@@ -72,6 +73,8 @@
 	<body>
 		<nav class="navbar navbar-default" style="border-radius: 0px; border-left: none; border-right: none;">
 		  <div class="container-fluid">
+		  	<div class="navbar-brand" style="float: right; font-size: 8px;" id="host">localhost</div>
+
 		    <div class="navbar-header">
 		      <a class="navbar-brand" href="#">imccelerator</a>
 		    </div>
