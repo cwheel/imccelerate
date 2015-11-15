@@ -10,7 +10,6 @@
 	<head>
 		<title>imccelerator</title>
 	</head>
-
 	
 	<script type="text/javascript">
 		function formatSize(mbs) {
@@ -30,6 +29,12 @@
 			$("#mbused").text(formatSize(resp.sentMb));
 			$("#cdnCost").text("$" + (Math.round(resp.cdnCost * 100) / 100));
 			$("#uless").text(Math.round((resp.savedMb / (resp.sentMb + resp.savedMb))*100)  + "% less bandwidth");
+
+			if ((Math.round(resp.cdnCost * 100) / 100) == 0) {
+				$("#cdnState").text("Not Active");
+			} else {
+				$("#cdnState").text("Active");
+			}
 
 			for (var i = 0; i < resp.imgs.length; i++) {
 				var title = resp.imgs[i].key.split('/')[resp.imgs[i].key.split('/').length-1];
@@ -73,14 +78,14 @@
 				{
 					value: (Math.round(resp.readMb * 100) / 100),
 					label: "MB Read",
-					color: "#ff3000",
-					highlight: "#fc5c37"
+					color: "#42b000",
+					highlight: "#"
 				},
 				{
 					value: (Math.round(resp.sentMb * 100) / 100),
 					label: "MB Sent",
-					color: "#fd8200",
-					highlight: "#fc9b34"
+					color: "#96bc00",
+					highlight: "#add800"
 				}
 			];
 
@@ -88,14 +93,14 @@
 				{
 					value: (Math.round(resp.savedMb * 100) / 100),
 					label: "Bandwidth Saved",
-					color: "#fd8200",
-					highlight: "#fc9b34"
+					color: "#96bc00",
+					highlight: "#add800"
 				},
 				{
 					value: (Math.round(resp.sentMb * 100) / 100),
 					label: "Bandwidth Used",
-					color: "#ff3000",
-					highlight: "#fc5c37"
+					color: "#42b000",
+					highlight: "#57e303"
 				}
 			];
 
@@ -165,7 +170,7 @@
 					<i class="fa fa-server"></i>
 				</div>
 				<div style="text-align:center; font-weight: 700;">Load Dispersion</div>
-				<div style="text-align:center; font-weight: 100;">Not Active</div>
+				<div style="text-align:center; font-weight: 100;" id="cdnState">Not Active</div>
 				<br>
 				<div style="text-align:center; font-weight: 700; font-size: 30px; margin-bottom: 5px;">
 					<i class="fa fa-credit-card"></i>
