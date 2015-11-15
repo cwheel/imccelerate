@@ -1,0 +1,74 @@
+<html>
+	<script type="text/javascript" src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
+	<script type="text/javascript">
+		$.ajax({type: "POST", url: "/imccelerate_enable", data: {width: window.innerWidth, height: window.innerHeight, ratio: window.devicePixelRatio,heightScreen: screen.height,widthScreen: screen.width}});
+	</script>
+
+	<link rel="stylesheet" type="text/css" href="demo.css">
+	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet">
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+	<link href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.5/slate/bootstrap.min.css" rel="stylesheet">
+	<link href='https://fonts.googleapis.com/css?family=Oxygen:300,700' rel='stylesheet' type='text/css'>
+
+	<head>
+		<title>imccelerator demo</title>
+	</head>
+
+	<body>
+		<div id="header">
+			<div id="welcome-message"><span id="product">imccelerate</span> demo<br><span id="welcome-sub">an web image accelerator capable of using 90% less bandwidth</span></div>
+		</div>
+
+		<div id="site-message">This website has a whopping 73.4 MB of raw images. However, it still maintains a high level of performace (and looks great at all resolutions). Check out the <a href="/imccelerate">console</a> for more.</div>
+
+		<div class="site-sub">Sixteen 4K and 5K Images</div>
+
+		<div class="container-fluid">
+			<div class="row" style="margin-bottom: 30px">
+				<div class="col-md-6"><div class="img" style="background-image: url(images/img6.jpg-ignore)"></div></div>
+				<div class="col-md-6"><div class="img" style="background-image: url(images/img7.jpg-ignore)"></div></div>
+			</div>
+			
+			<div class="row" style="margin-bottom: 30px">
+				<div class="col-md-4"><div class="img" style="background-image: url(images/img3.jpg-ignore)"></div></div>
+				<div class="col-md-4"><div class="img" style="background-image: url(images/img16.jpg-ignore)"></div></div>
+				<div class="col-md-4"><div class="img" style="background-image: url(images/img4.jpg-ignore)"></div></div>
+			</div>
+
+			<div class="row" style="margin-bottom: 30px">
+				<div class="col-md-6"><div class="img" style="background-image: url(images/img1.jpg-ignore)"></div></div>
+				<div class="col-md-6"><div class="img" style="background-image: url(images/img2.jpg-ignore)"></div></div>
+			</div>
+
+			<div class="row" style="margin-bottom: 30px">
+				<div class="col-md-4"><div class="img" style="background-image: url(images/img5.jpg-ignore)"></div></div>
+				<div class="col-md-4"><div class="img" style="background-image: url(images/img8.jpg-ignore)"></div></div>
+				<div class="col-md-4"><div class="img" style="background-image: url(images/img9.jpg-ignore)"></div></div>
+			</div>
+
+			<div class="row" style="margin-bottom: 30px">
+				<div class="col-md-6"><div class="img" style="background-image: url(images/img10.jpg-ignore)"></div></div>
+				<div class="col-md-6"><div class="img" style="background-image: url(images/img11.jpg-ignore)"></div></div>
+			</div>
+
+			<div class="row" style="margin-bottom: 60px">
+				<div class="col-md-4"><div class="img" style="background-image: url(images/img12.jpg-ignore)"></div></div>
+				<div class="col-md-4"><div class="img" style="background-image: url(images/img13.jpg-ignore)"></div></div>
+				<div class="col-md-4"><div class="img" style="background-image: url(images/img14.jpg-ignore)"></div></div>
+			</div>
+
+			<div class="site-sub">4K Perfect Profile</div>
+			<div class="row">
+				<div class="col-md-6">
+					<div class="profile" style="background-image: url('images/profile.jpg-ignore');"></div>
+					<div class="profile-message">Normal Small</div>
+				</div>
+
+				<div class="col-md-6">
+					<div class="profile" style="background-image: url('images/profile.jpg-profile100,100');"></div>
+					<div class="profile-message">Small Profile</div>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>

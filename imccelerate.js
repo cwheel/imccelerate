@@ -68,7 +68,8 @@ module.exports = function (app, exts, dir, cndCostPerGig, cdnMin, life) {
 					query = req.originalUrl.split('-')[1];
 					url = req.originalUrl.replace('-' + query, "");
 				}
-
+				console.log(query);
+				var path = dir + url;
 				if (query == 'xs') {
 					scale = 0.1;
 				} else if (query == 'sm') {
@@ -80,10 +81,12 @@ module.exports = function (app, exts, dir, cndCostPerGig, cdnMin, life) {
 				} else if (query == 'xl') {
 					scale = 1;
 				} else if (query == 'ignore') {
-					next();
+
+					res.sendFile(path);
+					return;
 				} 
 
-				var path = dir + url;
+				
 
 				if (fileExists(path)) {
 					var key = path + req.session.width + req.session.height + req.session.ratio + query;
