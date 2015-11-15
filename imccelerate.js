@@ -3,6 +3,7 @@ var lru = require("lru-cache");
 var gm = require('gm');
 var azure = require('azure-storage');
 var config = JSON.parse(fs.readFileSync('config.json', 'utf8'));
+var compression = require('compression');
 
 var accessKey = config.azure["accessKey"];
 var storageAccount = 'imccelerate';
@@ -24,6 +25,8 @@ module.exports = function (app, exts, dir, cndCostPerGig, cdnMin) {
 	var stats = {'readMb' : 0, 'sentMb' : 0, 'savedMb' : 0};
 	var readSizes = {};
 	var cdnCost = 0;
+
+	app.use(compression());
 
 	app.post('/imccelerate_enable', function(req, res) {
 		req.session.width = req.body.width;
