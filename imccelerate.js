@@ -155,7 +155,7 @@ module.exports = function (app, exts, dir, cndCostPerGig, cdnMin, life) {
 						  		quality = quality - 10;
 						  	}
 
-						  	if (query.indexOf("thumb") > -1){
+						  	if (query.indexOf("profile") > -1){
 						  		quality = 95;
 						  		console.log(newHeight)
 						  	}
@@ -165,16 +165,16 @@ module.exports = function (app, exts, dir, cndCostPerGig, cdnMin, life) {
 
 							  console.log("[imccelerate][cache-stored]", new Date(), req.originalUrl);
 
-							  	if(query.indexOf("thumb") > -1){
-							  		args = query.replace("thumb","").split(",");
+							  	if(query.indexOf("profile") > -1){
+							  		args = query.replace("profile","").split(",");
 							  		client.vision.thumbnail({
 							  		    path: path,
-							  		    height: args[0],
-							  		    width: args[1],
+							  		    height: args[0]*2,
+							  		    width: args[1]*2,
 							  		    smartCropping: true,
 							  		    pipe: fs.createWriteStream('./tmp/' + base64key)
 							  		}).then(function (response) {
-							  		  	gm("./tmp/" + base64key).quality(quality).resize(newWidth, newHeight).toBuffer(ext(path, exts),function(err, buffer) {
+							  		  	gm("./tmp/" + base64key).quality(quality).resize(args[0]*2, args[1]*2).toBuffer(ext(path, exts),function(err, buffer) {
 							  			  if (err) return handle(err);
 
 							  			  console.log("[imccelerate][cache-stored-thumb]", new Date(), req.originalUrl);
