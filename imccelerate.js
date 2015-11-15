@@ -18,14 +18,29 @@ blobSvc.createContainerIfNotExists('images',{publicAccessLevel : 'container'} , 
 });
 
 module.exports = function (app, exts, dir) {
-	var imgCache = lru();
+	//1GB LRU
+	var imgCache = lru({length: function (n) { n.length }, max: 1024*1024*1024});
 
-	app.post('/imccelerate', function(req, res) {
+	var stats = {'readMb' : 0, 'sentMb' : 0, 'savedMb' : 0};
+	var readSizes = {};
+
+	app.post('/imccelerate_enable', function(req, res) {
 		req.session.width = req.body.width;
 		req.session.height = req.body.height;
 		req.session.ratio = req.body.ratio;
 
 		res.send("session_stored");
+	});
+
+	app.get('/imccelerate_stats', function(req, res) {
+		var send = stats;
+		send.reads = Object.keys(readSizes).length;
+
+		res.send(send);
+	});
+
+	app.get('/imccelerate', function(req, res) {
+		res.sendFile(__dirname + "/lib/dashboard.html");
 	});
 
 	return function(req, res, next) {
@@ -40,8 +55,6 @@ module.exports = function (app, exts, dir) {
 					if (cacheItem == null) {
 						console.log("[imccelerate][cache-miss]", new Date(), req.method, req.originalUrl);
 
-						res.sendFile(path);
-
 						gm(path).size(function(err, image) {
 						  	if (err) return handle(err);
 
@@ -49,6 +62,8 @@ module.exports = function (app, exts, dir) {
 						  	var quality = 100;
 						  	var newHeight;
 						  	var newWidth;
+
+						  	var sizeBytes = fs.statSync(path).size;
 
 						  	if (req.session.width > req.session.height) {
 						  		newWidth = ((req.session.width*image.width)/image.height)*scale;
@@ -69,7 +84,7 @@ module.exports = function (app, exts, dir) {
 						  	if (req.session.ratio == 2) {
 						  		quality = 95;
 						  	}
-						  	
+
 						  	//Above Retina (5k iMacs and ....)
 						  	if (req.session.ratio > 2) {
 						  		quality = 98;
@@ -77,21 +92,34 @@ module.exports = function (app, exts, dir) {
 
 						  	newWidth = newWidth * req.session.ratio;
 						  	newHeight = newHeight * req.session.ratio;
-						  	console.log(ext(path, exts))
+
+						  	//TODO: Make this more adaptable
+						  	if (req.headers['user-agent'].toLowerCase().indexOf("mobile") > -1) {
+						  		quality = quality - 10;
+						  	}
 						  	gm(path).quality(quality).resize(newWidth, newHeight).toBuffer(ext(path, exts),function(err, buffer) {
 							  if (err) return handle(err);
 
 							  console.log("[imccelerate][cache-stored]", new Date(), req.originalUrl);
 
+							  readSizes[path] = sizeBytes/1024/1024;
+							  stats.readMb += sizeBytes/1024/1024;
+							  stats.sentMb += buffer.length/1024/1024;
+
 							  imgCache.set(key, buffer);
 							});
 						});
+
+						res.sendFile(path);
 					} else {
 						console.log("[imccelerate][cache-hit]", new Date(), req.method, req.originalUrl);
-						res.send(imgCache.get(key));
+						
+						var item = imgCache.get(key);
+						stats.savedMb += readSizes[path] - (item.length/1024/1024);
+						stats.sentMb += item.length/1024/1024;
 
 						var base64key = new Buffer(key).toString('base64');
-						fs.writeFile(base64key + "." + ext(path,exts),imgCache.get(key), function(err) {
+						fs.writeFile(base64key + "." + ext(path,exts),item, function(err) {
 						    if(err) {
 						        return console.log(err);
 						    }
@@ -103,6 +131,10 @@ module.exports = function (app, exts, dir) {
 						    });
 
 						});
+
+
+
+						res.send(item);
 					}
 					
 				} else {
