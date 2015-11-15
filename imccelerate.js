@@ -78,9 +78,24 @@ module.exports = function (app, exts, dir, cndCostPerGig) {
 				if (fileExists(path)) {
 					var key = path + req.session.width + req.session.height + req.session.ratio + query;
 					var cacheItem = imgCache.get(key);
-					
+
 					if (cacheItem == null) {
 						console.log("[imccelerate][cache-miss]", new Date(), req.method, req.originalUrl);
+						similarKey = null;
+						stopLoop = false;
+						imgCache.forEach(function (val, key, cache) {
+							if (!stopLoop){
+								if (Math.abs(width - val.width) < 200 || Math.abs(height - val.height) < 200){
+									similarKey = key;
+									stopLoop = true;
+								}		
+							}
+						});
+						
+
+						if(similarKey == null){
+							res.send(imgCache.get(key))
+						}
 
 						gm(path).size(function(err, image) {
 						  	if (err) return handle(err);
@@ -138,10 +153,12 @@ module.exports = function (app, exts, dir, cndCostPerGig) {
 							  stats.readMb += sizeBytes/1024/1024;
 							  stats.sentMb += buffer.length/1024/1024;
 
-							  imgCache.set(key, {'buffer' : buffer, 'cdnUrl' : '', 'bandwidth' : 0});
+							  imgCache.set(key, {'buffer' : buffer, 'cdnUrl' : '', 'bandwidth' : 0, 'height' : req.session.height, 'width' : req.session.width});
 							});
 						});
-						res.sendFile(path);
+						if (similarKey != null){
+							res.sendFile(path);
+						}
 					} else if (cacheItem.cdnUrl != '') {
 						console.log("[imccelerate][cdn-hit]", new Date(), req.method, req.originalUrl);
 						cdnCost += (cacheItem.buffer.length/1024/1024/1024)*cndCostPerGig;
