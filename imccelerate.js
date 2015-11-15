@@ -42,6 +42,11 @@ module.exports = function (app, exts, dir, cndCostPerGig, cdnMin) {
 		var send = stats;
 		send.reads = Object.keys(readSizes).length;
 		send.cdnCost = cdnCost;
+		send.imgs = [];
+
+		imgCache.forEach(function (val, curKey, cache) {
+			send.imgs.push({key: curKey, cdn: val.cdnUrl});
+		});
 
 		res.send(send);
 	});
@@ -73,9 +78,6 @@ module.exports = function (app, exts, dir, cndCostPerGig, cdnMin) {
 					scale = 0.8;
 				} else if (query == 'xl') {
 					scale = 1;
-				} else if (query.indexOf('blur') > -1) {
-					blur = parseInt(query.replace("blur",""));
-					console.log(blur);
 				} else if (query == 'ignore') {
 					next();
 				} 
@@ -124,11 +126,9 @@ module.exports = function (app, exts, dir, cndCostPerGig, cdnMin) {
 						  	if (req.session.width > req.session.height) {
 						  		newWidth = ((req.session.width*image.width)/image.height)*scale* req.session.ratio;
 						  		newHeight = (req.session.height)*scale*req.session.ratio;
-
 						  	} else {
 						  		newHeight = ((req.session.height*image.height)/image.width)*scale* req.session.ratio;
 						  		newWidth = (req.session.width)*scale*req.session.ratio;
-
 						  	}
 
 						  	//Manual quality overrides for high DPI screens, ensure that images look sharp
@@ -151,7 +151,7 @@ module.exports = function (app, exts, dir, cndCostPerGig, cdnMin) {
 						  	if (req.headers['user-agent'].toLowerCase().indexOf("mobile") > -1) {
 						  		quality = quality - 10;
 						  	}
-						  	gm(path).blur(blur).quality(quality).resize(newWidth, newHeight).toBuffer(ext(path, exts),function(err, buffer) {
+						  	gm(path).quality(quality).resize(newWidth, newHeight).toBuffer(ext(path, exts),function(err, buffer) {
 							  if (err) return handle(err);
 
 							  console.log("[imccelerate][cache-stored]", new Date(), req.originalUrl);
