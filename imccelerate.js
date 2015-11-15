@@ -21,9 +21,9 @@ blobSvc.createContainerIfNotExists('images',{publicAccessLevel : 'container'} , 
   }
 });
 
-module.exports = function (app, exts, dir, cndCostPerGig, cdnMin) {
+module.exports = function (app, exts, dir, cndCostPerGig, cdnMin, life) {
 	//1GB LRU
-	var imgCache = lru({length: function (n) { n.length }, max: 1024*1024*1024});
+	var imgCache = lru({length: function (n) { n.length }, max: 1024*1024*1024, maxAge: life});
 
 	var stats = {'readMb' : 0, 'sentMb' : 0, 'savedMb' : 0};
 	var readSizes = {};
@@ -45,6 +45,11 @@ module.exports = function (app, exts, dir, cndCostPerGig, cdnMin) {
 		var send = stats;
 		send.reads = Object.keys(readSizes).length;
 		send.cdnCost = cdnCost;
+		send.imgs = [];
+
+		imgCache.forEach(function (val, curKey, cache) {
+			send.imgs.push({key: curKey, cdn: val.cdnUrl});
+		});
 
 		res.send(send);
 	});
@@ -59,6 +64,7 @@ module.exports = function (app, exts, dir, cndCostPerGig, cdnMin) {
 				var url = req.originalUrl;
 				var query = '';
 				var scale = 1;
+				var blur = 0;
 
 				if (req.originalUrl.indexOf('-') > -1) {
 					query = req.originalUrl.split('-')[1];
@@ -123,11 +129,9 @@ module.exports = function (app, exts, dir, cndCostPerGig, cdnMin) {
 						  	if (req.session.width > req.session.height) {
 						  		newWidth = ((req.session.width*image.width)/image.height)*scale* req.session.ratio;
 						  		newHeight = (req.session.height)*scale*req.session.ratio;
-
 						  	} else {
 						  		newHeight = ((req.session.height*image.height)/image.width)*scale* req.session.ratio;
 						  		newWidth = (req.session.width)*scale*req.session.ratio;
-
 						  	}
 
 						  	//Manual quality overrides for high DPI screens, ensure that images look sharp

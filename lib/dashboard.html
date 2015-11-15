@@ -22,7 +22,6 @@
 		}
 
 		$.get("/imccelerate_stats", function (resp) {
-			console.log(resp);
 			$("#mbsent").text(formatSize(resp.sentMb));
 			$("#mbread").text(formatSize(resp.readMb));
 			$("#mbsaved").text(formatSize(resp.savedMb));
@@ -31,6 +30,38 @@
 			$("#mbused").text(formatSize(resp.sentMb));
 			$("#cdnCost").text("$" + (Math.round(resp.cdnCost * 100) / 100));
 			$("#uless").text(Math.round((resp.savedMb / (resp.sentMb + resp.savedMb))*100)  + "% less bandwidth");
+
+			for (var i = 0; i < resp.imgs.length; i++) {
+				var title = resp.imgs[i].key.split('/')[resp.imgs[i].key.split('/').length-1];
+				var size = "";
+				var location = "Server Side Cache";
+
+				if (title.indexOf("xs") > -1) {
+					size  = "Extra Small";
+					title = title.replace("xs", "");
+				} else if (title.indexOf("sm") > -1) {
+					size  = "Small";
+					title = title.replace("sm", "");
+				} else if (title.indexOf("md") > -1) {
+					size  = "Medium";
+					title = title.replace("md", "");
+				} else if (title.indexOf("lg") > -1) {
+					size  = "Large";
+					title = title.replace("lg", "");
+				} else if (title.indexOf("xl") > -1) {
+					size  = "Extra Large";
+					title = title.replace("xl", "");
+				}
+
+				title = title.replace(size, "");
+				title = title.replace(/\d+$/, "");
+
+				if (resp.imgs[i].cdn != '') {
+					location = "Azure CDN";
+				}
+
+				$("#imgs").append('<li class="list-group-item"><span class="badge">' + location + '</span><span class="badge">' + size + '</span>' + title + '</li>');
+			};
 
 			var options = {
 			    animation: true,
@@ -89,7 +120,7 @@
 		  </div>
 		</nav>
 
-		<div class="row-fluid">
+		<div class="row">
 			<div class="col-md-4">
 				<div style="text-align:center; font-weight: 100; font-size: 20px;">Data Read and Sent</div>
 				<br>
@@ -102,6 +133,7 @@
 				<div style="text-align:center; font-weight: 700;">Megabytes Sent</div>
 				<div style="text-align:center; font-weight: 100;" id="mbsent">0 MB</div>
 			</div>
+
 			<div class="col-md-4">
 				<div style="text-align:center; font-weight: 100; font-size: 20px;">Bandwidth Saved</div>
 				<br>
@@ -117,6 +149,7 @@
 				<div style="text-align:center; font-weight: 700;">Used Less</div>
 				<div style="text-align:center; font-weight: 100;" id="uless">0%</div>
 			</div>
+
 			<div class="col-md-4">
 				<div style="text-align:center; font-weight: 100; font-size: 20px;">Service Status</div>
 				<br>
@@ -139,6 +172,12 @@
 				</div>
 				<div style="text-align:center; font-weight: 700;">Estimated Azure CDN Cost</div>
 				<div style="text-align:center; font-weight: 100;" id="cdnCost">$0.00</div>
+			</div>
+		</div>
+
+		<div class="container" style="padding-top: 45px;">
+			<div class="row">
+				<ul class="list-group" id="imgs"></ul>
 			</div>
 		</div>
 	</body>
