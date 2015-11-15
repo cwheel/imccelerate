@@ -45,6 +45,12 @@ body {
 	height: 300px;
 	background-size: cover;
 	float: left;
+	border: solid 2px white;
+	transition: all 0.3s cubic-bezier(.15,.74,.86,.47);
+}
+
+.img:hover {
+	transform: scale3d(1.05,1.05,1);
 }
 
 a {
