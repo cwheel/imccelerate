@@ -106,7 +106,7 @@ module.exports = function (app, exts, dir) {
 							  stats.readMb += sizeBytes/1024/1024;
 							  stats.sentMb += buffer.length/1024/1024;
 
-							  imgCache.set(key, buffer);
+							  imgCache.set(key, {'buffer' : buffer, 'cdnUrl' : '', 'bandwidth' : 0});
 							});
 						});
 
@@ -114,12 +114,16 @@ module.exports = function (app, exts, dir) {
 					} else {
 						console.log("[imccelerate][cache-hit]", new Date(), req.method, req.originalUrl);
 						
-						var item = imgCache.get(key);
-						stats.savedMb += readSizes[path] - (item.length/1024/1024);
-						stats.sentMb += item.length/1024/1024;
+						imgCache.del(key);
+						cacheItem.bandwidth += stats.sentMb;
+
+						imgCache.set(key, cacheItem);
+
+						stats.savedMb += readSizes[path] - (cacheItem.buffer.length/1024/1024);
+						stats.sentMb += cacheItem.buffer.length/1024/1024;
 
 						var base64key = new Buffer(key).toString('base64');
-						fs.writeFile(base64key + "." + ext(path,exts),item, function(err) {
+						fs.writeFile(base64key + "." + ext(path,exts), cacheItem.buffer, function(err) {
 						    if(err) {
 						        return console.log(err);
 						    }
@@ -132,9 +136,7 @@ module.exports = function (app, exts, dir) {
 
 						});
 
-
-
-						res.send(item);
+						res.send(cacheItem.buffer);
 					}
 					
 				} else {

@@ -8,6 +8,7 @@
     "express": "latest",
     "express-session": "latest",
     "lru-cache": "latest",
-    "gm": "latest"
+    "gm": "latest",
+    "azure-storage": "latest"
   }
 }
