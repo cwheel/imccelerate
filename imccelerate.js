@@ -85,7 +85,7 @@ module.exports = function (app, exts, dir, cndCostPerGig, cdnMin) {
 						stopLoop = false;
 						imgCache.forEach(function (val, curKey, cache) {
 							if (!stopLoop){
-								if (Math.abs(req.session.width - val.width) < 200 || Math.abs(req.session.height  - val.height) < 200){
+								if ((Math.abs(req.session.width - val.width) < 200 || Math.abs(req.session.height  - val.height) < 200) && path == val.path){
 									console.log("[imccelerate][found-similar-match]")
 									similarKey = curKey;
 									stopLoop = true;
@@ -153,7 +153,7 @@ module.exports = function (app, exts, dir, cndCostPerGig, cdnMin) {
 							  stats.readMb += sizeBytes/1024/1024;
 							  stats.sentMb += buffer.length/1024/1024;
 
-							  imgCache.set(key, {'buffer' : buffer, 'cdnUrl' : '', 'bandwidth' : 0, 'height' : req.session.height, 'width' : req.session.width});
+							  imgCache.set(key, {'buffer' : buffer, 'cdnUrl' : '', 'bandwidth' : 0, 'height' : req.session.height, 'width' : req.session.width, 'path': path});
 							});
 						});
 						if (!stopLoop){
