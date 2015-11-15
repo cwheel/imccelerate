@@ -17,7 +17,7 @@ blobSvc.createContainerIfNotExists('images',{publicAccessLevel : 'container'} , 
   }
 });
 
-module.exports = function (app, exts, dir) {
+module.exports = function (app, exts, dir, cndCostPerGig) {
 	//1GB LRU
 	var imgCache = lru({length: function (n) { n.length }, max: 1024*1024*1024});
 
@@ -135,7 +135,7 @@ module.exports = function (app, exts, dir) {
 						console.log("[imccelerate][cache-hit]", new Date(), req.method, req.originalUrl);
 						
 						imgCache.del(key);
-						cacheItem.bandwidth += stats.sentMb;
+						cacheItem.bandwidth += (cacheItem.buffer.length/1024/1024);
 
 						imgCache.set(key, cacheItem);
 
