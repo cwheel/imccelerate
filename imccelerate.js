@@ -11,7 +11,7 @@ var cdnUrlBase = "http://az834420.vo.msecnd.net/images/"
 
 blobSvc.createContainerIfNotExists('images',{publicAccessLevel : 'container'} , function(error, result, response){
   if (!error) {
-    console.log("Image Containter Created");
+    console.log("[imccelerate][azure] CDN image container created");
   } else {
     console.log(error);
   }
@@ -143,15 +143,18 @@ module.exports = function (app, exts, dir, cndCostPerGig) {
 						});
 						res.sendFile(path);
 					} else if (cacheItem.cdnUrl != '') {
+						console.log("[imccelerate][cdn-hit]", new Date(), req.method, req.originalUrl);
+						cdnCost += (cacheItem.buffer.length/1024/1024/1024)*cndCostPerGig;
+
 						res.redirect(cdnUrlBase + cacheItem.cdnUrl);
 					} else if (cacheItem.bandwidth > 10) {
 						var base64key = new Buffer(key).toString('base64');
-						fs.writeFile(base64key + "." + ext(path,exts), cacheItem.buffer, function(err) {
+						fs.writeFile("tmp/" + base64key + "." + ext(path,exts), cacheItem.buffer, function(err) {
 						    if (err) {
 						        return console.log(err);
 						    }
 
-						    blobSvc.createBlockBlobFromLocalFile('images', base64key, base64key + "." + ext(path,exts), function(error, result, response){
+						    blobSvc.createBlockBlobFromLocalFile('images', base64key, "tmp/" + base64key + "." + ext(path,exts), function(error, result, response){
 						      if (!error){
 						        imgCache.del(key);
 						        cacheItem.cdnUrl = base64key;

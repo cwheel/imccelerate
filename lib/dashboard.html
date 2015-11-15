@@ -23,6 +23,7 @@
 			$("#reads").text(resp.reads);
 			$("#host").text(window.location.hostname);
 			$("#mbused").text(formatSize(resp.sentMb));
+			$("#cdnCost").text("$" + (Math.round(resp.cdnCost * 100) / 100));
 			$("#uless").text(Math.round((resp.savedMb / (resp.sentMb + resp.savedMb))*100)  + "% less bandwidth");
 
 			var options = {
@@ -118,6 +119,8 @@
 				<div style="text-align:center; font-weight: 100;" id="reads">0</div>
 				<div style="text-align:center; font-weight: 700;">Load Dispersion</div>
 				<div style="text-align:center; font-weight: 100;">Not Active</div>
+				<div style="text-align:center; font-weight: 700;">Estimated Azure CDN Cost</div>
+				<div style="text-align:center; font-weight: 100;" id="cdnCost">$0.00</div>
 			</div>
 		</div>
 	</body>
