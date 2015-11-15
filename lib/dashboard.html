@@ -56,6 +56,12 @@
 				} else if (title.indexOf("xl") > -1) {
 					size  = "Extra Large";
 					title = title.replace("xl", "");
+				} else if (title.indexOf("cache") > -1) {
+					size  = "Force CDN";
+					title = title.replace("cache", "");
+				} else if (title.indexOf("profile") > -1) {
+					size  = "Force CDN";
+					title = title.replace("profile" + title.split("profile")[title.split("profile").length-1], "");
 				}
 
 				title = title.replace(size, "");
@@ -114,7 +120,7 @@
 		});
 	</script>
 
-	<body>
+	<body style="overflow-x:hidden;">
 		<nav class="navbar navbar-default" style="border-radius: 0px; border-left: none; border-right: none;">
 		  <div class="container-fluid">
 		  	<div class="navbar-brand" style="float: right; font-size: 8px;" id="host">localhost</div>
