@@ -18,7 +18,7 @@ blobSvc.createContainerIfNotExists('images',{publicAccessLevel : 'container'} , 
   }
 });
 
-module.exports = function (app, exts, dir) {
+module.exports = function (app, exts, dir, cndCostPerGig) {
 	//1GB LRU
 	var imgCache = lru({length: function (n) { n.length }, max: 1024*1024*1024});
 
@@ -130,10 +130,8 @@ module.exports = function (app, exts, dir) {
 							  imgCache.set(key, {'buffer' : buffer, 'cdnUrl' : '', 'bandwidth' : 0});
 							});
 						});
-
 						res.sendFile(path);
 					} else if (cacheItem.cdnUrl != '') {
-						console.log(cacheItem.cdnUrl)
 						res.redirect(cdnUrlBase + cacheItem.cdnUrl);
 					} else if (cacheItem.bandwidth > 10){
 
@@ -156,14 +154,12 @@ module.exports = function (app, exts, dir) {
 						console.log("[imccelerate][cache-hit]", new Date(), req.method, req.originalUrl);
 						
 						imgCache.del(key);
-						cacheItem.bandwidth += stats.sentMb;
-						console.log(cacheItem.bandwidth);
+						cacheItem.bandwidth += (cacheItem.buffer.length/1024/1024);
+
 						imgCache.set(key, cacheItem);
 
 						stats.savedMb += readSizes[path] - (cacheItem.buffer.length/1024/1024);
-						stats.sentMb += cacheItem.buffer.length/1024/1024;
-
-						
+						stats.sentMb += cacheItem.buffer.length/1024/1024;						
 
 						res.send(cacheItem.buffer);
 					}
