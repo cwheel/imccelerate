@@ -9,7 +9,7 @@ var blobSvc = azure.createBlobService(storageAccount, accessKey);
 console.log("test");
 blobSvc.createContainerIfNotExists('images',{publicAccessLevel : 'container'} , function(error, result, response){
   if(!error){
-    console.log("Sucess");
+    console.log("Success");
     // Container exists and allows
     // anonymous read access to blob
     // content and metadata within this container
@@ -20,6 +20,6 @@ blobSvc.createContainerIfNotExists('images',{publicAccessLevel : 'container'} , 
 blobSvc.createBlockBlobFromLocalFile('images', '2.pdf', '2.pdf', function(error, result, response){
   if(!error){
     // file uploaded
-    console.log("Sucess");
+    console.log("Success");
   }
 });

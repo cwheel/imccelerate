@@ -6,14 +6,12 @@ var config = JSON.parse(fs.readFileSync('config.json', 'utf8'));
 var compression = require('compression');
 
 var oxford = require('project-oxford'),
-    client = new oxford.Client(config.azure["oxford"]);
+    client = new oxford.Client(config.azure["oxfordKey"]);
 
-var accessKey = config.azure["accessKey"];
-var storageAccount = 'imccelerate';
-var blobSvc = azure.createBlobService(storageAccount, accessKey);
-var cdnUrlBase = "http://az834420.vo.msecnd.net/images/"
+var blobSvc = azure.createBlobService(config.azure.storageAccount, config.azure["storageKey"]);
+var cdnUrlBase = config.azure.cdnUrl + config.azure.containerName + "/"
 
-blobSvc.createContainerIfNotExists('images',{publicAccessLevel : 'container'} , function(error, result, response){
+blobSvc.createContainerIfNotExists(config.azure.containerName,{publicAccessLevel : 'container'} , function(error, result, response){
   if (!error) {
     console.log("[imccelerate][azure] CDN image container created");
   } else {
@@ -210,7 +208,7 @@ module.exports = function (app, exts, dir, cndCostPerGig, cdnMin, life) {
 						        return console.log(err);
 						    }
 
-						    blobSvc.createBlockBlobFromLocalFile('images', base64key, "tmp/" + base64key + "." + ext(path,exts), function(error, result, response){
+						    blobSvc.createBlockBlobFromLocalFile(config.azure.containerName, base64key, "tmp/" + base64key + "." + ext(path,exts), function(error, result, response){
 						      if (!error){
 						        imgCache.del(key);
 						        cacheItem.cdnUrl = base64key;
