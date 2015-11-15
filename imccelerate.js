@@ -78,9 +78,24 @@ module.exports = function (app, exts, dir, cndCostPerGig, cdnMin) {
 				if (fileExists(path)) {
 					var key = path + req.session.width + req.session.height + req.session.ratio + query;
 					var cacheItem = imgCache.get(key);
-					
+
 					if (cacheItem == null) {
 						console.log("[imccelerate][cache-miss]", new Date(), req.method, req.originalUrl);
+						similarKey = null;
+						stopLoop = false;
+						imgCache.forEach(function (val, curKey, cache) {
+							if (!stopLoop){
+								if (Math.abs(req.session.width - val.width) < 200 || Math.abs(req.session.height  - val.height) < 200){
+									console.log("[imccelerate][found-similar-match]")
+									similarKey = curKey;
+									stopLoop = true;
+								}		
+							}
+						});
+
+						if(stopLoop){
+							res.send(imgCache.get(similarKey).buffer)
+						}
 
 						gm(path).size(function(err, image) {
 						  	if (err) return handle(err);
@@ -138,10 +153,12 @@ module.exports = function (app, exts, dir, cndCostPerGig, cdnMin) {
 							  stats.readMb += sizeBytes/1024/1024;
 							  stats.sentMb += buffer.length/1024/1024;
 
-							  imgCache.set(key, {'buffer' : buffer, 'cdnUrl' : '', 'bandwidth' : 0});
+							  imgCache.set(key, {'buffer' : buffer, 'cdnUrl' : '', 'bandwidth' : 0, 'height' : req.session.height, 'width' : req.session.width});
 							});
 						});
-						res.sendFile(path);
+						if (!stopLoop){
+							res.sendFile(path);
+						}
 					} else if (cacheItem.cdnUrl != '') {
 						console.log("[imccelerate][cdn-hit]", new Date(), req.method, req.originalUrl);
 						cdnCost += (cacheItem.buffer.length/1024/1024/1024)*cndCostPerGig;
