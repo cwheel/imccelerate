@@ -3,12 +3,13 @@ var lru = require("lru-cache");
 var gm = require('gm');
 
 module.exports = function (app, exts, dir) {
-	var imgCache = lru(10000);
+	//1GB LRU
+	var imgCache = lru({length: function (n) { n.length }, max: 1024*1024*1024});
 
 	var stats = {'readMb' : 0, 'sentMb' : 0, 'savedMb' : 0};
 	var readSizes = {};
 
-	app.post('/imccelerate', function(req, res) {
+	app.post('/imccelerate_enable', function(req, res) {
 		req.session.width = req.body.width;
 		req.session.height = req.body.height;
 		req.session.ratio = req.body.ratio;
@@ -17,7 +18,14 @@ module.exports = function (app, exts, dir) {
 	});
 
 	app.get('/imccelerate_stats', function(req, res) {
-		res.send(stats);
+		var send = stats;
+		send.reads = Object.keys(readSizes).length;
+
+		res.send(send);
+	});
+
+	app.get('/imccelerate', function(req, res) {
+		res.sendFile(__dirname + "/lib/dashboard.html");
 	});
 
 	return function(req, res, next) {

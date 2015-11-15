@@ -1,0 +1,120 @@
+<html>
+	<script type="text/javascript" src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
+	
+	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet">
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+	<link href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.5/slate/bootstrap.min.css" rel="stylesheet">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.min.js"></script>
+	
+	<script type="text/javascript">
+		function formatSize(mbs) {
+			if (mbs > 1024) {
+				return (Math.round((mbs / 1024) * 100) / 100) + " GB";
+			} else {
+				return (Math.round(mbs * 100) / 100) + " MB";
+			}
+		}
+
+		$.get("/imccelerate_stats", function (resp) {
+			$("#mbsent").text(formatSize(resp.sentMb));
+			$("#mbread").text(formatSize(resp.readMb));
+			$("#mbsaved").text(formatSize(resp.savedMb));
+			$("#reads").text(resp.reads);
+			$("#mbused").text(formatSize(resp.sentMb));
+			$("#uless").text(Math.round((resp.savedMb / (resp.sentMb + resp.savedMb))*100)  + "% less bandwidth");
+
+			var options = {
+			    animation: true,
+			    responsive : true,
+			    segmentStrokeWidth : 2
+			};
+
+			var rvssData = [
+				{
+					value: (Math.round(resp.readMb * 100) / 100),
+					label: "MB Read",
+					color: "#ff3000",
+					highlight: "#fc5c37"
+				},
+				{
+					value: (Math.round(resp.sentMb * 100) / 100),
+					label: "MB Sent",
+					color: "#fd8200",
+					highlight: "#fc9b34"
+				}
+			];
+
+			var bsData = [
+				{
+					value: (Math.round(resp.savedMb * 100) / 100),
+					label: "Bandwidth Saved",
+					color: "#fd8200",
+					highlight: "#fc9b34"
+				},
+				{
+					value: (Math.round(resp.sentMb * 100) / 100),
+					label: "Bandwidth Used",
+					color: "#ff3000",
+					highlight: "#fc5c37"
+				}
+			];
+
+			var rvss = document.getElementById("rvss").getContext("2d");
+			window.rvss = new Chart(rvss).Doughnut(rvssData, options);
+			window.rvss.outerRadius -= 1;
+
+			var bs = document.getElementById("bs").getContext("2d");
+			window.bs = new Chart(bs).Doughnut(bsData, options);
+			window.bs.outerRadius -= 1;
+		});
+	</script>
+
+	<body>
+		<nav class="navbar navbar-default" style="border-radius: 0px; border-left: none; border-right: none;">
+		  <div class="container-fluid">
+		    <div class="navbar-header">
+		      <a class="navbar-brand" href="#">imccelerator</a>
+		    </div>
+		  </div>
+		</nav>
+
+		<div class="row-fluid">
+			<div class="col-md-4">
+				<div style="text-align:center; font-weight: 100; font-size: 20px;">Data Read and Sent</div>
+				<br>
+
+				<canvas id="rvss" style="padding-right:25px; padding-bottom:25px;"></canvas>
+
+				<div style="text-align:center; font-weight: 700;">Megabytes Read</div>
+				<div style="text-align:center; font-weight: 100;" id="mbread">0 MB</div>
+				<br>
+				<div style="text-align:center; font-weight: 700;">Megabytes Sent</div>
+				<div style="text-align:center; font-weight: 100;" id="mbsent">0 MB</div>
+			</div>
+			<div class="col-md-4">
+				<div style="text-align:center; font-weight: 100; font-size: 20px;">Bandwidth Saved</div>
+				<br>
+
+				<canvas id="bs" style="padding-right:25px; padding-bottom:25px;"></canvas>
+
+				<div style="text-align:center; font-weight: 700;">Bandwidth Saved</div>
+				<div style="text-align:center; font-weight: 100;" id="mbsaved">0 MB</div>
+				<br>
+				<div style="text-align:center; font-weight: 700;">Bandwidth Used</div>
+				<div style="text-align:center; font-weight: 100;" id="mbused">0 MB</div>
+				<br>
+				<div style="text-align:center; font-weight: 700;">Used Less</div>
+				<div style="text-align:center; font-weight: 100;" id="uless">0%</div>
+			</div>
+			<div class="col-md-4">
+				<div style="text-align:center; font-weight: 100; font-size: 20px;">Service Status</div>
+				<br>
+
+				<div style="text-align:center; font-weight: 700;">Images Read</div>
+				<div style="text-align:center; font-weight: 100;" id="reads">0</div>
+				<div style="text-align:center; font-weight: 700;">Load Dispersion</div>
+				<div style="text-align:center; font-weight: 100;">Not Active</div>
+			</div>
+		</div>
+	</body>
+</html>
